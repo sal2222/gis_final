@@ -1,0 +1,50 @@
+---
+title: "gis_final"
+author: "Stephen Lewandowski"
+date: "December 10, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(maptools)
+library(rgdal)
+library(spgwr)
+library(spdep)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Read in the "US_CTY_PreventiveHealthExp.shp" file to create the "health_exp" object.
+
+```{r import_shp}
+
+health_exp <- readOGR(dsn = "./shapefile", layer = "US_CTY_PreventativeHealthExp")
+
+names(health_exp)
+plot(health_exp)
+
+```
+
+
+
+##GWR process 
+
+```{r gwr}
+bwG <- gwr.sel(PCT_BA ~ PHlth_Exp + PCT_RUR + PCT_POV + PCT_WH, data = health_exp, gweight = gwr.Gauss, verbose = TRUE)
+
+gwrG <- gwr(PCT_BA ~ PHlth_Exp + PCT_RUR + PCT_POV + PCT_WH, data = health_exp, bandwidth = bwG, gweight = gwr.Gauss)
+
+#plot r-square
+spplot(gwrG$SDF, "localR2")
+
+#create .shp
+writeSpatialShape(gwrG$SDF, "GWR_Results")
+```
+
+
+
+
+
